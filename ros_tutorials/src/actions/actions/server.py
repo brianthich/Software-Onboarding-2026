@@ -23,6 +23,8 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionServer
+from interfaces.action import SleepFor
+import time
 
 # Action design:
 #   Goal: seconds (float64)
@@ -64,6 +66,8 @@ class Server(Node):
         #   Returns the node's ROS logger, used for logging status updates.
         #   Usage: self.get_logger().info('message')
 
+        self.action_server = ActionServer(self, SleepFor, 'sleep_for', self.execute_callback)
+
     # Create an action callback that sleeps for the requested duration.
     # The callback should read the goal, send feedback periodically, and return a result.
     def execute_callback(self, goal_handle):
@@ -84,7 +88,26 @@ class Server(Node):
         #   Marks the goal as completed successfully.
         #   Usage: goal_handle.succeed()
         #   After calling this, build and return the final SleepFor.Result message.
-        return None
+
+        seconds = goal_handle.request.seconds
+        self.get_logger().info(f'Executing goal: sleep for {seconds} seconds.')
+        feedback_msg = SleepFor.Feedback()
+        remaining = seconds
+
+        while remaining > 0:
+            feedback_msg.remaining = remaining
+            goal_handle.publish_feedback(feedback_msg)
+
+            self.get_logger().info(f'Feedback: {remaining} seconds remaining.')
+
+            time.sleep(1.0) 
+            remaining -= 1.0
+
+        goal_handle.succeed()
+        result = SleepFor.Result()
+        result.success = True
+        self.get_logger().info('Goal completed successfully.')
+        return result
 
 def main():
     rclpy.init()

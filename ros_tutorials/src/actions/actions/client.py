@@ -18,6 +18,7 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
+from interfaces.action import SleepFor
 
 # Action design:
 #   Goal: seconds (float64)
@@ -57,6 +58,11 @@ class Client(Node):
         # self.get_logger():
         #   Returns the node's ROS logger, used to print progress and results.
 
+        self.action_client = ActionClient(self, SleepFor, 'sleep_for')
+        self.action_client.wait_for_server()
+        self.get_logger().info('Action client initialized and connected to server.')
+        self.request = SleepFor.Goal()
+
     # Create a method that sends the action goal.
     def send_goal(self, seconds):
         # client.wait_for_server():
@@ -74,16 +80,21 @@ class Client(Node):
         # TODO: Use a feedback callback that logs feedback from the server.
         # NOTE: The feedback callback can be attached when you call the server's 
         #       send_goal_async() method.
-        pass
+        goal = SleepFor.Goal()
+        goal.seconds = seconds
+        self.get_logger().info(f'Sending goal to sleep for {seconds} seconds.')
+        return self.action_client.send_goal_async(goal, feedback_callback=self.feedback_callback)
 
     def feedback_callback(self, feedback_msg):
         # feedback_msg.feedback:
         #   The data returned by the action server while the task is in progress.
         #   Usage: feedback_msg.feedback.remaining
         # TODO: Read and log feedback_msg.feedback.
-        pass
+        feedback = feedback_msg.feedback
+        self.get_logger().info(f'Feedback received: {feedback.remaining} seconds remaining.')
 
 def main():
+    rclpy.init()
     node = Client()
     future = node.send_goal(10.0) # 10 seconds sleep duration
     rclpy.spin_until_future_complete(node, future)
