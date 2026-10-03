@@ -53,6 +53,10 @@ class Pub(Node):
         #   - queue_size: outgoing message queue size
         #   Typical use: send data to subscribers on the topic.
 
+        self.publisher = self.create_publisher(String, 'topic', 10)
+        self.timer = self.create_timer(1.0, self.timer_callback)
+        self.i = 0
+
     # Create a timer callback that publishes a message every second.
     # The callback should create a String message, set its data to "Message {self.i}!", 
     # where i is an incremented intenger, and publish it to the topic.
@@ -60,7 +64,10 @@ class Pub(Node):
         # TODO: Create message object of type String
         # TODO: Set its data attribute to "Message {self.i}!" where i is an incremented integer
         # TODO: Publish the message using the publisher created in __init__
-        pass
+        msg = String()
+        msg.data = f'Message {self.i}!'
+        self.publisher.publish(msg)
+        self.i += 1
 
 def main():
     rclpy.init()

@@ -50,6 +50,8 @@ class Sub(Node):
         #   - qos: quality of service depth for the subscription queue
         #   Typical use: receive sensor updates, commands, or status messages.
 
+        self.subscription = self.create_subscription(String, 'topic', self.listener_callback, 10)
+
     # Create a callback function that prints the received message.
     # The callback should accept a String message and log the data.
     def listener_callback(self, msg):
@@ -65,7 +67,7 @@ class Sub(Node):
         #   - debug(): logs debug-level messages when enabled
         #   Typical use: print received topic data and node status messages.
         
-        pass
+        self.get_logger().info(msg.data)
 
 def main():
     rclpy.init()
