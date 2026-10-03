@@ -21,6 +21,8 @@
 
 import rclpy
 from rclpy.node import Node
+from interfaces.srv import RandomNumber
+import random
 
 # Service design:
 #   Request: min_value, max_value (int64)
@@ -64,6 +66,8 @@ class ServiceServer(Node):
         #   - warn(): log warnings
         #   - error(): log errors
 
+        self.service = self.create_service(RandomNumber, 'generate_random_number', self.generate_random_number)
+
     # Create a service callback that generates a random number.
     # The callback should read the request values, generate a value between min and max (inclusive),
     # and return a response containing the generated number.
@@ -72,6 +76,7 @@ class ServiceServer(Node):
         # TODO: Generate a random integer in the requested range
         # TODO: Set response.random_number to the generated value
         # TODO: Return response
+        response.random_number = random.randint(request.min_value, request.max_value)
         return response
 
 def main():

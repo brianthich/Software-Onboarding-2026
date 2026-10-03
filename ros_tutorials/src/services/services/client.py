@@ -17,6 +17,7 @@
 
 import rclpy
 from rclpy.node import Node
+from interfaces.srv import RandomNumber
 
 # Service design:
 #   Request: min_value, max_value
@@ -60,6 +61,13 @@ class ServiceClient(Node):
         #   Returns the node's ROS logger, used to print request/response details.
         #   Usage: self.get_logger().info('message')
 
+        self.client = self.create_client(RandomNumber, 'generate_random_number')
+        self.client.wait_for_service()
+        self.request = RandomNumber.Request()
+        self.request.min_value = 1
+        self.request.max_value = 100
+        self.get_logger().info(f'Service client initialized with min_value={self.request.min_value} and max_value={self.request.max_value}')
+
     # Create a method that sends the service request.
     def send_request(self):
         # TODO: Build a RandomNumber.Request object with a min and max range
@@ -71,7 +79,11 @@ class ServiceClient(Node):
         #   The Future can be passed to rclpy.spin_until_future_complete(...)
         #   and its result can then be read with future.result().
 
-        pass
+        request = RandomNumber.Request()
+        request.min_value = self.request.min_value
+        request.max_value = self.request.max_value
+        self.get_logger().info(f'Requesting random number from {request.min_value} to {request.max_value}')
+        return self.client.call_async(request)
 
 def main():
     rclpy.init()
